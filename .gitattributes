@@ -1,0 +1,5 @@
+* text=auto eol=lf
+
+# Windows固有拡張子のみ改行コードにCRLFを使用する
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf

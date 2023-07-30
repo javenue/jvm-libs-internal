@@ -1,0 +1,15 @@
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### VS Code ###
+.vscode
+
+### Gradle ###
+build
+.gradle
+
+### npm ###
+node_modules
