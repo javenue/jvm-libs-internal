@@ -1,0 +1,12 @@
+plugins {
+  id 'java-library'
+  id 'groovy-gradle-plugin'
+}
+
+repositories {
+  gradlePluginPortal()
+}
+
+dependencies {
+  implementation 'com.gradle.publish:plugin-publish-plugin:1.1.0'
+}
