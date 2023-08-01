@@ -1,0 +1,8 @@
+plugins {
+  id 'java-gradle-plugin'
+  id 'com.gradle.plugin-publish'
+}
+
+gradlePlugin {
+  vcsUrl = 'https://github.com/javenue/jvm-libs-internal.git'
+}
