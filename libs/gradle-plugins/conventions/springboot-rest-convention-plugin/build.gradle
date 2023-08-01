@@ -1,0 +1,47 @@
+plugins {
+  id 'java-library'
+  id 'buildsrc.gradle-plugin-publish-config'
+  id 'org.jetbrains.kotlin.jvm' version '1.8.22'
+}
+
+group 'io.github.javenue.jvm-libs.internal'
+version '1.0.0'
+
+repositories {
+  mavenCentral()
+  gradlePluginPortal()
+}
+
+dependencies {
+  implementation 'org.openapitools:openapi-generator-gradle-plugin:6.5.0'
+
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+  testImplementation 'org.assertj:assertj-core:3.23.1'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+gradlePlugin {
+  plugins {
+    springBootRestConventionPlugin {
+      id = 'io.github.javenue.internal.springboot-rest-convention'
+      displayName = 'Spring Boot Rest Convention Plugin'
+      description = 'A plugin which adds dependencies and configurations to enable REST APIs with OpenAPI generator for the standard Spring Boot project.'
+      implementationClass = 'io.github.javenue.jvmlibs.internal.conventions.SpringBootRestConventionPlugin'
+    }
+  }
+}
+
+publishing {
+  publications {
+    gpr(MavenPublication) {
+      pom {
+        name = 'Spring Boot Rest Convention Plugin'
+        description = 'A plugin which adds dependencies and configurations to enable REST APIs with OpenAPI generator for the standard Spring Boot project.'
+        url = 'https://github.com/javenue/jvm-libs'
+      }
+    }
+  }
+}
