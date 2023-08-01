@@ -1,0 +1,47 @@
+plugins {
+  id 'java-library'
+  id 'buildsrc.gradle-plugin-publish-config'
+  id 'org.jetbrains.kotlin.jvm' version '1.8.22'
+}
+
+group 'io.github.javenue.jvm-libs.internal'
+version '1.0.0'
+
+repositories {
+  mavenCentral()
+  gradlePluginPortal()
+}
+
+dependencies {
+  implementation 'org.openapitools:openapi-generator-gradle-plugin:6.2.1'
+
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+  testImplementation 'org.assertj:assertj-core:3.23.1'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+gradlePlugin {
+  plugins {
+    gatsbyRestConventionPlugin {
+      id = 'io.github.javenue.internal.gatsby-rest-convention'
+      displayName = 'Gatsby Rest Convention Plugin'
+      description = 'A plugin which adds dependencies and configurations to enable REST APIs with OpenAPI generator for the standard Gatsby project.'
+      implementationClass = 'io.github.javenue.jvmlibs.internal.conventions.GatsbyRestConventionPlugin'
+    }
+  }
+}
+
+publishing {
+  publications {
+    gpr(MavenPublication) {
+      pom {
+        name = 'Gatsby Rest Convention Plugin'
+        description = 'A plugin which adds dependencies and configurations to enable REST APIs with OpenAPI generator for the standard Gatsby project.'
+        url = 'https://github.com/javenue/jvm-libs'
+      }
+    }
+  }
+}
