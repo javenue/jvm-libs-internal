@@ -11,14 +11,46 @@ import org.openapitools.generator.gradle.plugin.tasks.ValidateTask
 class SpringBootRestConventionPlugin : Plugin<Project> {
 
   companion object {
+
     private const val TASK_GROUP = "openapi generation"
+
+    private val TYPE_MAPPINGS = mapOf("OffsetDateTime" to "java.time.LocalDateTime")
+
+    private val GLOBAL_PROPERTIES = mapOf(
+        "apis" to "",
+        "apiDocs" to "false",
+        "apiTests" to "false",
+        "models" to "",
+        "modelDocs" to "false",
+        "modelTests" to "false",
+        "supportingFiles" to "",
+    )
+
+    private val SERVER_CONFIG_OPTIONS = mapOf(
+        "useTags" to "true",
+        "useSpringBoot3" to "true",
+        "interfaceOnly" to "true",
+        "requestMappingMode" to "api_interface",
+        "dateLibrary" to "java8",
+        "annotationLibrary" to "none",
+        "documentationProvider" to "none",
+    )
+
+    private val CLIENT_CONFIG_OPTIONS = mapOf(
+        "useTags" to "true",
+        "useJakartaEe" to "true",
+        "library" to "resttemplate",
+        "dateLibrary" to "java8",
+        "documentationProvider" to "none",
+    )
+
   }
 
   private lateinit var project: Project
 
-  private lateinit var openapiProject: Project
+  private lateinit var docProject: Project
 
-  private lateinit var openapiResourcesDir: String
+  private lateinit var openapiDir: String
 
   private lateinit var openapiGeneratorExtension: SpringBootRestConventionExtension
 
@@ -32,23 +64,31 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
 
   override fun apply(project: Project) {
     this.project = project
-    this.openapiProject = project.parent!!.parent!!.project("openapi")
-    this.openapiResourcesDir = "${openapiProject.projectDir.path}/src/main/resources"
+    this.docProject = project.parent!!.project("doc")
+    this.openapiDir = "${docProject.projectDir.path}/src/main/openapi"
     project.plugins.apply("java-library")
     this.openapiGeneratorExtension =
         project.extensions.create("openapiGenerator", SpringBootRestConventionExtension::class.java)
 
     project.repositories.mavenCentral()
     project.dependencies.let {
-      it.add("api", "io.swagger.core.v3:swagger-annotations:2.1.13")
-      it.add("compileOnly", "org.springframework.boot:spring-boot-starter-web")
-      it.add("compileOnly", "com.fasterxml.jackson.core:jackson-annotations:2.13.1")
-      it.add("compileOnly", "org.openapitools:jackson-databind-nullable:0.2.2")
-      it.add("compileOnly", "io.springfox:springfox-swagger2:3.0.0")
+      it.add("implementation", "org.springframework.boot:spring-boot-starter-web")
+
+      // required dependencies by generated Java sources.
+      it.add("implementation", "org.springframework:spring-web:5.3.24")
+      it.add("implementation", "org.springframework:spring-context:5.3.24")
+      it.add("implementation", "com.fasterxml.jackson.core:jackson-core:2.14.2")
+      it.add("implementation", "com.fasterxml.jackson.core:jackson-annotations:2.14.2")
+      it.add("implementation", "com.fasterxml.jackson.core:jackson-databind:2.15.1")
+      it.add("implementation", "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.14.2")
+      it.add("implementation", "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
+      it.add("implementation", "jakarta.validation:jakarta.validation-api:3.0.2")
+      it.add("compileOnly", "org.openapitools:jackson-databind-nullable:0.2.6")
+      it.add("compileOnly", "jakarta.annotation:jakarta.annotation-api:2.1.1")
       it.add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
     }
 
-    project.afterEvaluate { _ ->
+    project.afterEvaluate { evaluatedProject ->
       processExtension()
       addSrcDir()
 
@@ -57,7 +97,7 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
 
       validateTasks.add(
           project.tasks.register("validateOpenapiSpec", ValidateTask::class.java) {
-            it.description = "Validates internal openapi-spec file by running OpenAPI Generator."
+            it.description = "Validates internal openapi specification file by running OpenAPI Generator."
             it.group = TASK_GROUP
             it.inputSpec.set(internalInputSpecPath)
             it.recommend.set(true)
@@ -72,23 +112,12 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
             it.inputSpec.set(internalInputSpecPath)
             it.outputDir.set(outputDir)
             it.generatorName.set("spring")
-            it.generateApiTests.set(false)
-            it.generateModelTests.set(false)
-            it.invokerPackage.set("${basePackage}.openapi.internal.spring")
-            it.apiPackage.set("${basePackage}.openapi.internal.spring.apis")
-            it.modelPackage.set("${basePackage}.openapi.internal.spring.models")
-            it.configOptions.set(
-                mapOf(
-                    "useTags" to "true",
-                    "interfaceOnly" to "true",
-                    "useOptional" to "true",
-                )
-            )
-            it.typeMappings.set(
-                mapOf(
-                    "OffsetDateTime" to "java.time.LocalDateTime",
-                )
-            )
+            it.invokerPackage.set("${basePackage}.openapi.apis")
+            it.apiPackage.set("${basePackage}.openapi.apis")
+            it.modelPackage.set("${basePackage}.openapi.apis.models")
+            it.typeMappings.set(TYPE_MAPPINGS)
+            it.configOptions.set(SERVER_CONFIG_OPTIONS)
+            it.globalProperties.set(GLOBAL_PROPERTIES)
           }
       )
 
@@ -100,30 +129,19 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
             it.inputSpec.set(internalInputSpecPath)
             it.outputDir.set(outputDir)
             it.generatorName.set("java")
-            it.generateApiTests.set(false)
-            it.generateModelTests.set(false)
-            it.invokerPackage.set("${basePackage}.openapi.internal.java")
-            it.apiPackage.set("${basePackage}.openapi.internal.java.clients")
-            it.modelPackage.set("${basePackage}.openapi.internal.java.models")
-            it.configOptions.set(
-                mapOf(
-                    "useTags" to "true",
-                    "library" to "resttemplate",
-                    "dateLibrary" to "java8",
-                )
-            )
-            it.typeMappings.set(
-                mapOf(
-                    "OffsetDateTime" to "java.time.LocalDateTime",
-                )
-            )
+            it.invokerPackage.set("${basePackage}.openapi.clients.internal")
+            it.apiPackage.set("${basePackage}.openapi.clients.internal")
+            it.modelPackage.set("${basePackage}.openapi.clients.internal.models")
+            it.configOptions.set(CLIENT_CONFIG_OPTIONS)
+            it.typeMappings.set(TYPE_MAPPINGS)
+            it.globalProperties.set(GLOBAL_PROPERTIES)
           }
       )
 
       externalInputSpecPaths.forEach { (apiName, inputSpecPath) ->
         validateTasks.add(
             project.tasks.register("validateOpenapiSpecFor_${apiName}", ValidateTask::class.java) {
-              it.description = "Validates openapi-spec file for $apiName API by running OpenAPI Generator."
+              it.description = "Validates openapi specification file for $apiName API by running OpenAPI Generator."
               it.group = TASK_GROUP
               it.inputSpec.set(inputSpecPath)
               it.recommend.set(true)
@@ -138,23 +156,12 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
               it.inputSpec.set(inputSpecPath)
               it.outputDir.set(outputDir)
               it.generatorName.set("java")
-              it.generateApiTests.set(false)
-              it.generateModelTests.set(false)
-              it.invokerPackage.set("${basePackage}.openapi.external.java.${apiName.lowercase()}")
-              it.apiPackage.set("${basePackage}.openapi.external.java.${apiName.lowercase()}.clients")
-              it.modelPackage.set("${basePackage}.openapi.external.java.${apiName.lowercase()}.models")
-              it.configOptions.set(
-                  mapOf(
-                      "useTags" to "true",
-                      "library" to "resttemplate",
-                      "dateLibrary" to "java8",
-                  )
-              )
-              it.typeMappings.set(
-                  mapOf(
-                      "OffsetDateTime" to "java.time.LocalDateTime",
-                  )
-              )
+              it.invokerPackage.set("${basePackage}.openapi.clients.external.${apiName.lowercase()}")
+              it.apiPackage.set("${basePackage}.openapi.clients.external.${apiName.lowercase()}")
+              it.modelPackage.set("${basePackage}.openapi.clients.external.${apiName.lowercase()}.models")
+              it.configOptions.set(CLIENT_CONFIG_OPTIONS)
+              it.typeMappings.set(TYPE_MAPPINGS)
+              it.globalProperties.set(GLOBAL_PROPERTIES)
             }
         )
       }
@@ -165,38 +172,41 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
         it.dependsOn(generateTasks)
       }
 
-      project.tasks.getByName("compileJava").dependsOn(
-          "generateAllCode",
-      )
+      project.tasks.getByName("compileJava").dependsOn("generateAllCode")
     }
 
   }
 
+  /**
+   * SpringBootRestConventionExtensionから各設定値を取得する。
+   * 設定値が与えられていない場合はデフォルト値を設定する。
+   */
   private fun processExtension() {
-    internalInputSpecPath = "${openapiResourcesDir}/${
-      openapiGeneratorExtension.internalInputSpecPath.getOrElse(
-          "${project.name}/internal/openapi-spec.yaml"
-      )
+    internalInputSpecPath = "${openapiDir}/${
+      openapiGeneratorExtension.internalInputSpecPath.getOrElse("internal/openapi.yaml")
     }"
 
     externalInputSpecPaths = if (openapiGeneratorExtension.externalInputSpecPaths.get().isEmpty()) {
       val paths = HashMap<String, String>()
-      openapiProject
-          .fileTree("${openapiResourcesDir}/${project.name}/external")
-          .matching { it.include("**/openapi-spec.yaml") }
+      docProject
+          .fileTree("${openapiDir}/external")
+          .matching { it.include("**/openapi.yaml") }
           .forEach { paths[it.parentFile.name] = it.path }
       paths
     } else {
       openapiGeneratorExtension.externalInputSpecPaths.get()
-          .mapValues { "${openapiResourcesDir}/${it.value}" }
+          .mapValues { "${openapiDir}/${it.value}" }
     }
 
     outputDir = openapiGeneratorExtension.outputDir.getOrElse(
-        "${project.buildDir}/generated/openapi"
+        "${project.layout.buildDirectory.map { it.asFile.path }.get()}/generated/openapi"
     )
 
+    val appName = project.rootProject.name.replace("-", "").lowercase()
+    val contextName = project.parent?.parent?.parent?.name?.replace("-", "")?.lowercase()
+    val perspectiveName = project.parent?.name?.replace("-", "")?.lowercase()
     basePackage = openapiGeneratorExtension.basePackage.getOrElse(
-        "io.github.javenue.${project.rootProject.name.replace("-", "")}.${project.parent?.parent?.name}.${project.name}"
+        "io.github.javenue.$appName.$contextName.$perspectiveName"
     )
   }
 
@@ -205,10 +215,7 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
     javaPluginExtension.sourceSets.getByName("main").java.srcDir(
         project
             .files("${outputDir}/src/main/java")
-            .builtBy(
-                "generateSpringServerCode",
-                "generateJavaClientCode",
-            )
+            .builtBy("generateSpringServerCode", "generateJavaClientCode")
             .builtBy(externalInputSpecPaths.map { (apiName, _) ->
               "generateJavaClientCodeFor_${apiName}"
             })

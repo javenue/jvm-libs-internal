@@ -1,0 +1,19 @@
+[versions]
+
+[libraries]
+junit_jupiter = { module = "org.junit.jupiter:junit-jupiter", version = "5.10.1" }
+assertJ_core = { module = "org.assertj:assertj-core", version = "3.24.2" }
+mockito_core = { module = "org.mockito:mockito-core", version = "5.7.0" }
+mockito_junit_jupitor = { module = "org.mockito:mockito-junit-jupiter", version = "5.7.0" }
+
+groovy = { module = "org.apache.groovy:groovy", version = "4.0.15" }
+spock_bom = { module = "org.spockframework:spock-bom", version = "2.4-M1-groovy-3.0" }
+spock_core = { module = "org.spockframework:spock-core", version = "2.4-M1-groovy-3.0" }
+byteBuddy = { module = "net.bytebuddy:byte-buddy", version = "1.14.10" }
+objenesis = { module = "org.objenesis:objenesis", version = "3.3" }
+
+[bundles]
+junit = ["junit_jupiter", "assertJ_core", "mockito_core", "mockito_junit_jupitor"]
+spock = ["groovy", "spock_core", "byteBuddy", "objenesis"]
+
+[plugins]

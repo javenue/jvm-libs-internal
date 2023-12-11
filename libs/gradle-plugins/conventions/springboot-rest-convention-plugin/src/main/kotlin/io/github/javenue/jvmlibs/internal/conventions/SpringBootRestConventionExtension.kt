@@ -31,4 +31,5 @@ interface SpringBootRestConventionExtension {
    * If not specified, the default value 'io.github.javenue.root project name.service name.product or management' will be used.
    */
   val basePackage: Property<String>
+
 }

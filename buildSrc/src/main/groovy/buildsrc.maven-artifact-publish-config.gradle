@@ -5,8 +5,7 @@ plugins {
 publishing {
   repositories {
     maven {
-      name = "GitHubPackages"
-      url = uri('https://maven.pkg.github.com/javenue/jvm-libs-internal')
+      url 'https://maven.pkg.github.com/javenue/jvm-libs-internal'
       credentials {
         username = project.findProperty('gpr.user') ?: System.getenv('USERNAME')
         password = project.findProperty('gpr.key') ?: System.getenv('TOKEN')
@@ -14,16 +13,7 @@ publishing {
     }
   }
   publications {
-    gpr(MavenPublication) {
-      from components.java
-      versionMapping {
-        usage('java-api') {
-          fromResolutionOf('runtimeClasspath')
-        }
-        usage('java-runtime') {
-          fromResolutionResult()
-        }
-      }
+    pluginMaven(MavenPublication) {
       pom {
         licenses {
           license {
@@ -34,7 +24,7 @@ publishing {
         scm {
           connection = 'scm:git:git://github.com/javenue/jvm-libs-internal.git'
           developerConnection = 'scm:git:git://github.com/javenue/jvm-libs-internal.git'
-          url = 'https://github.com/javenue/jvm-libs'
+          url = 'https://github.com/javenue/jvm-libs-internal'
         }
       }
     }

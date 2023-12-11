@@ -1,11 +1,12 @@
 plugins {
-  id 'java-library'
-  id 'buildsrc.gradle-plugin-publish-config'
+  id 'java-gradle-plugin'
+  id 'buildsrc.maven-artifact-publish-config'
+  id 'groovy'
   id 'org.jetbrains.kotlin.jvm' version '1.8.22'
 }
 
 group 'io.github.javenue.jvm-libs.internal'
-version '1.0.0'
+version '0.1.1'
 
 repositories {
   mavenCentral()
@@ -13,10 +14,15 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.openapitools:openapi-generator-gradle-plugin:6.5.0'
+  implementation 'org.openapitools:openapi-generator-gradle-plugin:7.1.0'
 
-  testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
-  testImplementation 'org.assertj:assertj-core:3.23.1'
+  testImplementation libs.junit.jupiter
+  testImplementation libs.assertJ.core
+  testImplementation libs.mockito.core
+  testImplementation libs.mockito.junit.jupitor
+  testImplementation libs.spock.core
+  testRuntimeOnly libs.byteBuddy
+  testRuntimeOnly libs.objenesis
 }
 
 test {
@@ -24,11 +30,13 @@ test {
 }
 
 gradlePlugin {
+  website = 'https://github.com/javenue/jvm-libs-internal'
   plugins {
     springBootRestConventionPlugin {
       id = 'io.github.javenue.internal.springboot-rest-convention'
       displayName = 'Spring Boot Rest Convention Plugin'
-      description = 'A plugin which adds dependencies and configurations to enable REST APIs with OpenAPI generator for the standard Spring Boot project.'
+      description = 'A convention plugin which adds dependencies and configurations to enable REST APIs with OpenAPI for the standard Spring Boot project.'
+      tags.set(['javenue', 'convention', 'spring', 'rest'])
       implementationClass = 'io.github.javenue.jvmlibs.internal.conventions.SpringBootRestConventionPlugin'
     }
   }
@@ -36,11 +44,11 @@ gradlePlugin {
 
 publishing {
   publications {
-    gpr(MavenPublication) {
+    pluginMaven(MavenPublication) {
       pom {
         name = 'Spring Boot Rest Convention Plugin'
-        description = 'A plugin which adds dependencies and configurations to enable REST APIs with OpenAPI generator for the standard Spring Boot project.'
-        url = 'https://github.com/javenue/jvm-libs'
+        description = 'A convention plugin which adds dependencies and configurations to enable REST APIs with OpenAPI for the standard Spring Boot project.'
+        url = 'https://github.com/javenue/jvm-libs-internal'
       }
     }
   }
