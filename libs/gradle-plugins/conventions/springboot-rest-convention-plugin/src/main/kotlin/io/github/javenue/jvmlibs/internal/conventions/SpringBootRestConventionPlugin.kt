@@ -88,7 +88,7 @@ class SpringBootRestConventionPlugin : Plugin<Project> {
       it.add("compileOnly", "com.google.code.findbugs:jsr305:3.0.2")
     }
 
-    project.afterEvaluate { evaluatedProject ->
+    project.afterEvaluate { _ ->
       processExtension()
       addSrcDir()
 
